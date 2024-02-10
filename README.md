@@ -1,58 +1,23 @@
-import bs4 as bs
+from bs4 import BeautifulSoup
+import requests, openpyxl
 
-import urllib.request
+excel = openpyxl.Workbook()
+sheet = excel.active
+sheet.title = 'Top Rated Movies'
+sheet.append(['Movie Rank','movie Name'])
 
-source = urllib.request.urlopen('https://pythonprogramming.net/parsememcparseface/').read()
+try:
+    source = requests.get('https://www.imdb.com/list/ls091520106/')
+    source.raise_for_status()
+    soup = BeautifulSoup(source.text,'html.parser')
+    movies = soup.find('div',class_="lister-list").find_all('div',class_="lister-item mode-detail")
+    for movie in movies :
+        name = movie.find('h3',class_="lister-item-header").a.text
+        rank = movie.find('h3',class_="lister-item-header").get_text(strip=True).split('.')[0]
+        print(rank,name)
+        sheet.append([rank,name])
 
-soup = bs.BeautifulSoup(source,'lxml')
+except Exception as e:
+    print(e)
 
-print(soup.title)
-
-print(soup.title.name)
-
-print(soup.title.string)
-
-print(soup.title.parent.name)
-
-print(soup.p)
-
-print(soup.find_all('p'))
-
-for paragraph in soup.find_all('p'):
-    print(paragraph.string)
-    print(str(paragraph.text))
-
-for url in soup.find_all('a'):
-    print(url.get('href'))
-
-nav = soup.nav
-for url in nav.find_all('a'):
-    print(url.get('href'))
-          
-body = soup.body
-for paragraph in body.find_all('p'):
-    print(paragraph.text)
-
-for div in soup.find_all('div', class_='body'):
-    print(div.text)
-
-table = soup.table
-
-table_rows = table.find_all('tr')
-
-for tr in table_rows:
-    td = tr.find_all('td')
-    row = [i.text for i in td]
-    print(row)
-
-soup = bs.BeautifulSoup(source,'xml')
-for url in soup.find_all('loc'):
-    print(url.text)
-
-soup = bs.BeautifulSoup(source,'lxml')
-
-js_test = soup.find('p', class_='jstest')
-
-print(js_test.text)
-
-print("it will be contunued")
+excel.save('Imdb Top Rated movies.xlsx')
